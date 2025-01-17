@@ -1,24 +1,27 @@
 import express from "express";
 import { connectDb } from "./config/dbConnection.js";
-import cors from "cors"
-// // *********** All-Routes *************
+import cors from "cors";
+// *********** All-Routes *************
 import auth from "./routes/auth.routes.js";
 import user from "./routes/user.routes.js";
 // *********** All-Routes *************
 
 import cookieParser from "cookie-parser";
 const app = express();
-// Use cors middleware
-app.use(cors());
 
+// Use cors middleware
 app.use(
   cors({
-    origin: "https://leaderboard-client-o300kahg4-shashikants-projects-f4bc43cb.vercel.app/", // Replace with the frontend's URL (React app)
+    origin: [
+      "https://leaderboard-client-o300kahg4-shashikants-projects-f4bc43cb.vercel.app", // Deployed React app
+      "http://localhost:3000", // Local React app for testing
+    ],
     methods: "GET,POST,PUT,DELETE,PATCH", // Allowed methods
+    credentials: true, // Allow cookies (if needed)
   })
 );
 
-//middle wares
+// Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -31,7 +34,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth/v1", auth);
 app.use("/api/user/v1", user);
 
-// for wrong apis
+// Handle wrong APIs
 app.use((req, res) => {
   res.status(404).json({
     success: false,
@@ -39,8 +42,7 @@ app.use((req, res) => {
   });
 });
 
-// Error handling middleware (optional, for other server errors)
-
+// Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err);
   res.status(500).json({
@@ -49,7 +51,9 @@ app.use((err, req, res, next) => {
     error: err.message,
   });
 });
-const PORT=process.env.PORT||7000
+
+// Start the server
+const PORT = process.env.PORT || 7000;
 app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
   await connectDb();
